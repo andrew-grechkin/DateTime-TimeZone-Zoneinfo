@@ -1,0 +1,13 @@
+Build.PL
+MANIFEST
+META.json
+META.yml
+README.md
+lib/DateTime/TimeZone/Zoneinfo.pm
+lib/DateTime/TimeZone/Zoneinfo/DynamicTransition.pm
+lib/DateTime/TimeZone/Zoneinfo/Transition.pm
+t/UTC.t
+t/historical.t
+t/leap.t
+t/offset_for_local_datetime.t
+LICENSE
