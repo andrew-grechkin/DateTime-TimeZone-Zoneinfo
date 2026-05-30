@@ -1,7 +1,7 @@
 use v5.40;
 use experimental qw(class declared_refs refaliasing);
 
-class DateTime::TimeZone::Zoneinfo 1.0 {
+class DateTime::TimeZone::Zoneinfo 1.001 {
     use Carp        qw();
     use Cwd         qw();
     use File::Find  qw();
@@ -43,6 +43,8 @@ class DateTime::TimeZone::Zoneinfo 1.0 {
     field $fh;
 
     my %INSTANCE_CACHE;
+    my @countries;
+    my %zones_by_country;
 
     sub timezone($name = 'local') {
         my $dir;
@@ -156,7 +158,7 @@ class DateTime::TimeZone::Zoneinfo 1.0 {
 
         File::Find::find(
             sub {
-                return if !-e || -d;
+                return if !-e || -d || !m/^[[:upper:]]/x;
                 push @names, $File::Find::name =~ s{^\Q$dir\E\/?}{}r;
             },
             $dir,
@@ -216,12 +218,14 @@ class DateTime::TimeZone::Zoneinfo 1.0 {
         return @names;
     }
 
-    sub countries($class, $name) {
-        Carp::croak('The "countries" method is not implemented');
+    sub countries($class) {
+        _load_countries() unless @countries;
+        return wantarray ? @countries : \@countries;
     }
 
     sub names_in_country($class, $country_code) {
-        Carp::croak('The "names_in_country" method is not implemented');
+        _load_zones() unless %zones_by_country;
+        return wantarray ? $zones_by_country{lc $country_code}->@* : $zones_by_country{lc $country_code};
     }
 
     sub offset_as_seconds($class, $offset) {
@@ -309,14 +313,43 @@ class DateTime::TimeZone::Zoneinfo 1.0 {
         return $transitions[$low];
     }
 
+    sub _load_countries() {
+        my $path = File::Spec->catfile($ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR(), 'iso3166.tab');
+        Carp::croak("Failed to open zoneinfo file '$path': $!") unless open my $fh, '<:raw', $path;
+
+        while (defined(my $line = <$fh>)) {
+            next if $line =~ m/^\s*#/;
+            chomp($line);
+            my ($code, $name) = split m/\s+/, $line, 2;
+            push @countries, lc $code;
+        }
+
+        @countries = sort @countries;
+
+        return;
+    }
+
+    sub _load_zones() {
+        my $path = File::Spec->catfile($ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR(), 'zone.tab');
+        Carp::croak("Failed to open zoneinfo file '$path': $!") unless open my $fh, '<:raw', $path;
+
+        while (defined(my $line = <$fh>)) {
+            next if $line =~ m/^\s*#/;
+            chomp($line);
+            my ($code, $coordinates, $zone, $comments) = split m/\s+/, $line, 4;
+            push $zones_by_country{lc $code}->@*, $zone;
+        }
+
+        return;
+    }
+
     sub _parse_chars($chars) {
         my %result;
 
         pos($chars) = 0;
-        while (true) {
-            my $pos = pos $chars;
-            last unless $chars =~ m/([^\0]+)\0/g;
-            $result{$pos} = $1;
+
+        while ($chars =~ m/\G([^\0]+)\0/g) {
+            $result{pos($chars) - length($1) - 1} = $1;
         }
 
         return \%result;
@@ -475,6 +508,20 @@ names (e.g., C<{ 'US/Eastern' =E<gt> 'America/New_York' }>)
 
 Returns a list of all timezone names in the given C<$category>.
 The category name is treated case-insensitively.
+
+=head2 countries()
+
+  my @countries = DateTime::TimeZone::Zoneinfo->countries;
+
+Depending on context returns list or arrayref of sorted lower-cased ISO3166 country codes
+
+=head2 names_in_country()
+
+  my @zones = DateTime::TimeZone::Zoneinfo->names_in_country($country_code);
+
+Depending on context returns list or arrayref of timezones used in a country.
+
+COMPATIBILITY: The returned zones don't have any special order.
 
 =head2 offset_as_seconds($offset)
 

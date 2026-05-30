@@ -74,4 +74,34 @@ tests 'offset methods' => sub {
     is($CLASS->offset_as_string(-19_800, ''), '-0530',  'offset_as_string handles separator');
 };
 
+tests 'countries' => sub {
+    my @expected = qw(
+        ad ae ag aq
+        ar as at au
+        aw ax gs gy
+        hk hm io kp
+        kr mf mm nl
+        sx sz tc tr
+        tt vc vg vi
+        wf ws za
+    );
+    is($CLASS->countries, \@expected, 'correctly reads iso3166 file');
+};
+
+tests 'parsed correctly' => sub {
+    my @expected = qw(
+        Antarctica/McMurdo
+        Antarctica/Casey
+        Antarctica/Davis
+        Antarctica/DumontDUrville
+        Antarctica/Mawson
+        Antarctica/Palmer
+        Antarctica/Rothera
+        Antarctica/Syowa
+        Antarctica/Troll
+        Antarctica/Vostok
+    );
+    is($CLASS->names_in_country('aq'), \@expected, 'returns all zones in Antarctica');
+};
+
 done_testing();
