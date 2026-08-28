@@ -25,7 +25,7 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
     };
 
     # constructor parameters
-    field $dir  : param : reader = $ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR();
+    field $dir  : param : reader = _default_dir();
     field $name : param : reader;
 
     # public attributes
@@ -151,7 +151,7 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
     }
 
     sub all_names($class) {
-        my $dir = $ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR();
+        my $dir = _default_dir();
         my @names;
 
         return unless -d $dir;
@@ -182,7 +182,7 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
     }
 
     sub links($class) {
-        my $dir = $ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR();
+        my $dir = _default_dir();
         my %links;
 
         return \%links unless -d $dir;
@@ -314,7 +314,7 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
     }
 
     sub _load_countries() {
-        my $path = File::Spec->catfile($ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR(), 'iso3166.tab');
+        my $path = File::Spec->catfile(_default_dir(), 'iso3166.tab');
         Carp::croak("Failed to open zoneinfo file '$path': $!") unless open my $fh, '<:raw', $path;
 
         while (defined(my $line = <$fh>)) {
@@ -330,7 +330,7 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
     }
 
     sub _load_zones() {
-        my $path = File::Spec->catfile($ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR(), 'zone.tab');
+        my $path = File::Spec->catfile(_default_dir(), 'zone.tab');
         Carp::croak("Failed to open zoneinfo file '$path': $!") unless open my $fh, '<:raw', $path;
 
         while (defined(my $line = <$fh>)) {
@@ -341,6 +341,10 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
         }
 
         return;
+    }
+
+    sub _default_dir() {
+        return $ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR();
     }
 
     sub _parse_chars($chars) {
@@ -367,8 +371,7 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
 
     sub _is_valid_name($dir, $name) {
         return false unless $name;
-        return _is_valid_path(
-            File::Spec->catfile($dir || $ENV{DATETIME_TIMEZONE_ZONEINFO_DIR} || DEFAULT_DIR(), $name));
+        return _is_valid_path(File::Spec->catfile($dir || _default_dir(), $name));
     }
 
     sub _is_valid_path($path) {
