@@ -44,7 +44,7 @@ immutable, and significantly faster alternative for handling timestamps.
 However, `Time::Moment` itself does not handle the complexities of timezone rules;
 it requires a [`DateTime::TimeZone`-compatible object](https://metacpan.org/dist/Time-Moment/view/lib/Time/Moment.pod#TIME-ZONES)
 to resolve offsets. This module was created to bridge that gap. It provides a lean, fast, and beautiful
-timezone provider with almost no dependencies, allowing developers to leverage the speed of `Time::Moment`
+timezone provider with no dependencies, allowing developers to leverage the speed of `Time::Moment`
 without pulling the entire `DateTime` ecosystem in.
 It is the ideal companion for high-performance, modern Perl applications.
 

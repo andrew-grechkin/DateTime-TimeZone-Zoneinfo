@@ -21,8 +21,7 @@ Module::Build->new(
         'perl'         => '5.040',
     },
     requires => {
-        'DateTime::TimeZone::SystemV' => '0.009',
-        'perl'                        => '5.040',
+        'perl' => '5.040',
     },
     meta_merge => {
         resources => {

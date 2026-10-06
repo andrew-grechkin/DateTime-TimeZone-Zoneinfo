@@ -7,33 +7,22 @@ class DateTime::TimeZone::Zoneinfo::DynamicTransition {
         'bool'     => sub {return true},
         'fallback' => true;
 
-    use Carp qw();
-
     field $epoch : param : reader;
-    field $sysv  : param : reader;
+    field $posix : param : reader;
 
     sub from_footer($class, $epoch, $version, $footer) {
-        require DateTime::TimeZone::SystemV;
-        DateTime::TimeZone::SystemV->VERSION('0.009');
+        require DateTime::TimeZone::Zoneinfo::POSIX;
         return $class->new(
             epoch => $epoch,
-            sysv  => DateTime::TimeZone::SystemV->new(
+            posix => DateTime::TimeZone::Zoneinfo::POSIX->new(
                 system => $version >= 3 ? 'tzfile3' : 'posix',
                 recipe => $footer,
             ),
         );
     }
 
-    method to_string() {
-        return sprintf('[%16d] %s', int($self->epoch), $self->sysv->name);
-    }
-
-    method abbreviation($tm) {return $sysv->short_name_for_datetime($tm)}
-    method is_dst($tm)       {return $sysv->is_dst_for_datetime($tm)}
-
-    method offset($tm) {
-        my $offset = $sysv->offset_for_datetime($tm);
-        return $offset if defined $offset;
-        Carp::croak("Local time does not exist (due to DST gap): $tm");
-    }
+    method to_string()       {return sprintf('[%16d] %s', int($epoch), $posix->recipe)}
+    method abbreviation($tm) {return $posix->short_name_for_datetime($tm)}
+    method is_dst($tm)       {return $posix->is_dst_for_datetime($tm)}
+    method offset($tm)       {return $posix->offset_for_datetime($tm)}
 }
