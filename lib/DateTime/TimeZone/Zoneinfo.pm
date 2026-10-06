@@ -25,7 +25,7 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
     };
 
     # constructor parameters
-    field $dir  : param : reader = _default_dir();
+    field $dir : param : reader = _default_dir();
     field $name : param : reader;
 
     # public attributes
@@ -286,7 +286,8 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
 
     method _process_footer() {
         if ($footer && $footer !~ m/(UTC|GMT)/n) {
-            my $epoch = $transitions->@* ? _get_start_of_next_year($transitions->[-1]->epoch + 1) : -Inf;
+            my $last_epoch = $transitions->@*      ? $transitions->[-1]->epoch : -Inf;
+            my $epoch      = ($last_epoch == -Inf) ? -Inf : _get_start_of_next_year($last_epoch + 1);
             push $transitions->@*,
                 DateTime::TimeZone::Zoneinfo::DynamicTransition->from_footer($epoch, $version, $footer);
         }
@@ -438,7 +439,7 @@ __END__
 
 =encoding utf8
 
-=head1 NAME
+=head1 DateTime::TimeZone::Zoneinfo
 
 DateTime::TimeZone::Zoneinfo - A compact and fast loader for IANA Zoneinfo (TZif) files that provides
 a `DateTime::TimeZone` compatible interface.
