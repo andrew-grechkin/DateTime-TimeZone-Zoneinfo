@@ -2,11 +2,12 @@ use v5.40;
 use experimental qw(class declared_refs refaliasing);
 
 class DateTime::TimeZone::Zoneinfo 1.001 {
-    use Carp        qw();
-    use Cwd         qw();
-    use File::Find  qw();
-    use File::Spec  qw();
-    use Time::Local qw();
+    use Carp           qw();
+    use Cwd            qw();
+    use File::Basename qw();
+    use File::Find     qw();
+    use File::Spec     qw();
+    use Time::Local    qw();
 
     use DateTime::TimeZone::Zoneinfo::DynamicTransition qw();
     use DateTime::TimeZone::Zoneinfo::Transition        qw();
@@ -414,6 +415,10 @@ class DateTime::TimeZone::Zoneinfo 1.001 {
         my $localtime_path = '/etc/localtime';
         if (-l $localtime_path) {
             if (my $target = readlink $localtime_path) {
+                if (!File::Spec->file_name_is_absolute($target)) {
+                    $target = File::Spec->rel2abs($target, File::Basename::dirname($localtime_path));
+                    $target = File::Spec->canonpath($target);
+                }
                 ($dir, $name) = _full_path_to_dir_and_name($target);
                 return ($dir, $name) if _is_valid_name($dir, $name);
             }
