@@ -8,7 +8,6 @@ Module::Build->new(
     dist_abstract  => 'A compact loader for IANA Zoneinfo files providing a standard DateTime::TimeZone interface',
     dist_author    => 'Andrew Grechkin',
     license        => 'perl',
-    create_license => 1,
     module_name    => 'DateTime::TimeZone::Zoneinfo',
     build_requires => {
         'perl' => '5.040',
